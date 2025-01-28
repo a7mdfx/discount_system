@@ -118,6 +118,6 @@ Django REST Framework
 This project is licensed under the MIT License.
 
 *Author*
-Ahmed Abdelkarim
-ahmedsherif.kg@gmail.com
-a7mdfx
+[Ahmed Abdelkarim]
+[ahmedsherif.kg@gmail.com]
+[a7mdfx]
