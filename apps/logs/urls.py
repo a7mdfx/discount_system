@@ -1,8 +1,7 @@
 from django.urls import path
-from . import views
-
+from apps.logs.views import LogListView
 
 urlpatterns = [
     
-    path('logs/', views.LogListView.as_view(), name='log-list'),  # NEW ENDPOINT
+    path('logs/',LogListView.as_view(), name='log-list'),  # NEW ENDPOINT
 ]

@@ -1,9 +1,9 @@
 from django.urls import path
-from . import views
+from apps.accounts.views import UserListCreateView,UserProfileDetailView
 
 urlpatterns = [
     
-    path('users/<int:user_id>/', views.get_user_profile, name='user-profile'),
-    path('users/', views.get_user_list,name='user-list'),
+    path('users/<int:id>/', UserProfileDetailView.as_view(), name='user-profile'),
+    path('users/', UserListCreateView.as_view(),name='user-list'),
 
 ]

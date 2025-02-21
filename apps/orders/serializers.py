@@ -19,8 +19,3 @@ class OrderSerializer(serializers.ModelSerializer):
         for item_data in items_data:
             OrderItem.objects.create(order=order, **item_data)  # Create related order items
         return order
-
-class OrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['id', 'created_at', 'subtotal', 'discount_amount', 'final_amount']  # Include the fields you need

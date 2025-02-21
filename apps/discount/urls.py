@@ -1,9 +1,9 @@
 from django.urls import path
-from . import views
+from apps.discount.views import CalculateDiscountView
 
 
 urlpatterns = [
     
-    path('cart/calculate-discount/', views.CalculateDiscountView.as_view(), name='calculate-discount'),
+    path('cart/calculate-discount/',CalculateDiscountView.as_view(), name='calculate-discount'),
 
 ]

@@ -1,75 +1,35 @@
-from django.shortcuts import render
 from rest_framework import generics
-from .models import Order
-from .serializers import OrderSerializer
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.paginator import Paginator
+from apps.orders.models import Order
+from apps.orders.serializers import OrderSerializer
 
-class OrderListView(APIView):
-    def get(self, request):
-        orders = Order.objects.all()  # Get all orders
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+# Custom pagination class
+class OrderPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'limit'
+    max_page_size = 100
 
-    def post(self, request):
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# Get all orders & Create a new order
+class OrderListView(generics.ListCreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    pagination_class = OrderPagination
 
-class OrderDetailView(APIView):
-    def get(self, request, order_id):
-        try:
-            order = Order.objects.get(id=order_id)
-        except Order.DoesNotExist:
-            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = OrderSerializer(order)
-        return Response(serializer.data)
+# Get, Update, and Delete a single order
+class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    lookup_field = 'id'  # Allows retrieving by order ID
 
-    def put(self, request, order_id):
-        try:
-            order = Order.objects.get(id=order_id)
-        except Order.DoesNotExist:
-            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = OrderSerializer(order, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# Get a user's order history with pagination
+class UserOrdersHistoryView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    pagination_class = OrderPagination
 
-    def delete(self, request, order_id):
-        try:
-            order = Order.objects.get(id=order_id)
-        except Order.DoesNotExist:
-            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-        order.delete()
-        return Response({'message': 'Order deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-    
-
-class UserOrdersHistoryView(APIView):
-    def get(self, request, user_id):
-        # Step 1: Get the query parameters
-        page = request.query_params.get('page', 1)  # Default to page 1
-        limit = request.query_params.get('limit', 10)  # Default limit is 10 items per page
-
-        # Step 2: Filter orders by user_id
-        user_orders = Order.objects.filter(user_id=user_id).order_by('-created_at')
-
-        # Step 3: Paginate the results
-        paginator = Paginator(user_orders, limit)
-        orders_page = paginator.get_page(page)
-
-        # Step 4: Serialize the data
-        serializer = OrderSerializer(orders_page, many=True)
-
-        # Step 5: Prepare the response
-        response_data = {
-            "orders": serializer.data,
-            "total": paginator.count,  # Total number of orders
-            "page": orders_page.number,  # Current page number
-        }
-        return Response(response_data, status=200)
-
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        return Order.objects.filter(user_id=user_id).order_by('-created_at')
